@@ -30,21 +30,21 @@ print(pred)
 
 from skl2onnx import convert_sklearn
 from skl2onnx.common.data_types import FloatTensorType
-initial_type = [("float_input", FloatTensorType([1, 10]))]
+initial_type = [('float_input', FloatTensorType([1, 10]))]
 onx = convert_sklearn(classifier, initial_types=initial_type)
-with open("rfc_onx.onnx", "wb") as f:
+with open('rfc_onx.onnx', 'wb') as f:
         f.write(onx.SerializeToString())
 
 import onnxruntime as rt
-sess = rt.InferenceSession("rfc_onx.onnx")
+sess = rt.InferenceSession('rfc_onx.onnx')
 input_name = sess.get_inputs()[0].name
 label_name = sess.get_outputs()[0].name
 pred_onx = sess.run(
     [label_name], {input_name: sample.astype(np.float32)})[0]
-print("onnx prediction...")
+print('onnx prediction...')
 print(pred_onx)
 
-conn = redis.Redis(host="localhost", port=6379, db=0)
+conn = redis.Redis(host='localhost', port=6379, db=0)
 with open("rfc_onx.onnx", "rb") as f:
     model = f.read()
     res = conn.execute_command('AI.MODELSET', 'sklmodel', 'ONNX', 'CPU', model)
@@ -55,11 +55,13 @@ tensor = redisai.BlobTensor.from_numpy(
 rai.tensorset('tensor', tensor)
 rai.modelrun('sklmodel', inputs=['tensor'], outputs=['out_label', 'out_probs'])
 out = rai.tensorget('out_label')
-print("RedisAI prediction...")
+print('RedisAI prediction...')
 print(out)
 
-print("Load gear")
+print('Load gear')
 with open('rfc_gear.py', 'rb') as f:
     gear = f.read()
     res = conn.execute_command('RG.PYEXECUTE', gear)
     print(res)
+
+conn.xadd('xIn', {'text':'an apple a day'}, maxlen=None)

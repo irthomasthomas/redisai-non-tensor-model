@@ -6,6 +6,7 @@ import numpy as np
 vectorizer = pickle.load(open('/root/dev/projects/redisai-non-tensor-model/countVectorizer.pickle', 'rb'))
 
 def runModel(x):
+    print(x['text'])
     sample = vectorizer.transform(
         [x['text']]).toarray()
     ba = np.asarray(sample, dtype=np.float32)

@@ -3,30 +3,21 @@ import redisAI as rai
 import pickle
 import numpy as np
 
+vectorizer = pickle.load(open('/root/dev/projects/redisai-non-tensor-model/countVectorizer.pickle', 'rb'))
 
 def runModel(x):
-    vectorizer = pickle.load(open('/root/dev/projects/redisai-non-tensor-model/countVectorizer.pickle', 'rb'))
-
-    text_sample = vectorizer.transform(
+    sample = vectorizer.transform(
         [x['text']]).toarray()
-
+    ba = np.asarray(sample, dtype=np.float32)
     modelRunner = rai.createModelRunner('sklmodel')
-
-    ba = np.asarray(text_sample, dtype=np.float32)
-    ba = bytearray(ba.tobytes())
-
-    tensor = rai.createTensorFromBlob('FLOAT', [1, 10], ba)
-    rai.modelRunnerAddInput(modelRunner, 'float_input', tensor)
+    rai.modelRunnerAddInput(modelRunner, 'float_input', ba)
     rai.modelRunnerAddOutput(modelRunner, 'output_label')
     rai.modelRunnerAddOutput(modelRunner, 'output_probability')
-    print(x['text'])
-
-    # SEG FAULTS HERE
-    # model_replies = rai.modelRunnerRun(modelRunner)
-
-    model_output = model_replies[0]
+    model_replies = rai.modelRunnerRun(modelRunner)
+        # ERROR: type 0 is not supported in this function
+    # model_output = model_replies[0]
     print("runModel output...")
-    print(model_output)
+    print(str(model_replies)) # = None
 
 def storeResults(x):
     print(str(x))
@@ -36,5 +27,5 @@ def storeResults(x):
 bg = GearsBuilder('StreamReader')
 bg.foreach(lambda x: print(str(x['streamId'])))
 bg.foreach(runModel)
-bg.foreach(storeResults)
+# bg.foreach(storeResults)
 bg.register('xIn')
